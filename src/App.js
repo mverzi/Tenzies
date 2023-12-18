@@ -10,24 +10,25 @@ export default function App() {
     const [bestScore, setBestScore] = React.useState(() => JSON.parse(localStorage.getItem("rolls")) || 0)
     
     React.useEffect(() => {
-        const allHeld = dice.every(die => die.isHeld)
-        const firstValue = dice[0].value
-        const allSameValue = dice.every(die => die.value === firstValue)
-        if (allHeld && allSameValue) {
+        const updateBestScore = () => {
+            if (rolls < bestScore || bestScore === 0) {
+              setBestScore(rolls);
+            }
+          }
+
+          const allHeld = dice.every((die) => die.isHeld)
+          const firstValue = dice[0].value
+          const allSameValue = dice.every((die) => die.value === firstValue)
+      
+          if (allHeld && allSameValue) {
             setTenzies(true)
             updateBestScore()
-        }
-    }, [dice, updateBestScore])
+          }
+    }, [dice, bestScore])
 
     React.useEffect(() => {
         localStorage.setItem("rolls", JSON.stringify(bestScore))
     }, [bestScore])
-
-    function updateBestScore(){
-        if(rolls < bestScore || bestScore === 0){
-            setBestScore(rolls)
-        }
-    }
 
     function generateNewDie() {
         return {
