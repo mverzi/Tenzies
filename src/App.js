@@ -7,18 +7,7 @@ export default function App() {
     const [dice, setDice] = React.useState(allNewDice())
     const [tenzies, setTenzies] = React.useState(false)
     const [rolls, setRolls] = React.useState(0)
-    const [bestScore, setBestScore] = React.useState(0)
-
-    React.useEffect(() => {
-        const prevRolls = JSON.parse(localStorage.getItem("rolls")) || 0;
-        setBestScore((prevBestScore) => {
-            if (prevBestScore === 0) {
-                return prevRolls;
-            } else {
-                return Math.min(prevBestScore, prevRolls);
-            }
-        });
-      }, []);
+    const [bestScore, setBestScore] = React.useState(() => JSON.parse(localStorage.getItem("rolls")) || 0)
     
     React.useEffect(() => {
         const allHeld = dice.every(die => die.isHeld)
@@ -31,8 +20,8 @@ export default function App() {
     }, [dice])
 
     React.useEffect(() => {
-        localStorage.setItem("rolls", JSON.stringify(rolls))
-    }, [rolls])
+        localStorage.setItem("rolls", JSON.stringify(bestScore))
+    }, [bestScore])
 
     function updateBestScore(){
         if(rolls < bestScore || bestScore === 0){
