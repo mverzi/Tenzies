@@ -1,25 +1,109 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react"
+import Die from "./Die"
+import {nanoid} from "nanoid"
+import Confetti from "react-confetti"
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+    const [dice, setDice] = React.useState(allNewDice())
+    const [tenzies, setTenzies] = React.useState(false)
+    const [rolls, setRolls] = React.useState(0)
+    const [bestScore, setBestScore] = React.useState(0)
+
+    React.useEffect(() => {
+        const prevRolls = JSON.parse(localStorage.getItem("rolls")) || 0;
+        setBestScore((prevBestScore) => {
+            if (prevBestScore === 0) {
+                return prevRolls;
+            } else {
+                return Math.min(prevBestScore, prevRolls);
+            }
+        });
+      }, []);
+    
+    React.useEffect(() => {
+        const allHeld = dice.every(die => die.isHeld)
+        const firstValue = dice[0].value
+        const allSameValue = dice.every(die => die.value === firstValue)
+        if (allHeld && allSameValue) {
+            setTenzies(true)
+            updateBestScore()
+        }
+    }, [dice])
+
+    React.useEffect(() => {
+        localStorage.setItem("rolls", JSON.stringify(rolls))
+    }, [rolls])
+
+    function updateBestScore(){
+        if(rolls < bestScore || bestScore === 0){
+            setBestScore(rolls)
+        }
+    }
+
+    function generateNewDie() {
+        return {
+            value: Math.ceil(Math.random() * 6),
+            isHeld: false,
+            id: nanoid()
+        }
+    }
+    
+    function allNewDice() {
+        const newDice = []
+        for (let i = 0; i < 10; i++) {
+            newDice.push(generateNewDie())
+        }
+        return newDice
+    }
+    
+    function rollDice() {
+        if(!tenzies) {
+            setRolls(oldRolls => oldRolls + 1)
+            setDice(oldDice => oldDice.map(die => {
+                return die.isHeld ? 
+                    die :
+                    generateNewDie()
+            }))
+        } else {
+            setTenzies(false)
+            setDice(allNewDice())
+            setRolls(0)
+        }
+    }
+    
+    function holdDice(id) {
+        setDice(oldDice => oldDice.map(die => {
+            return die.id === id ? 
+                {...die, isHeld: !die.isHeld} :
+                die
+        }))
+    }
+    
+    const diceElements = dice.map(die => (
+        <Die 
+            key={die.id} 
+            value={die.value} 
+            isHeld={die.isHeld} 
+            holdDice={() => holdDice(die.id)}
+        />
+    ))
+    
+    return (
+        <main>
+            {tenzies && <Confetti />}
+            <h1 className="title">Tenzies</h1>
+            <p className="instructions">Roll until all dice are the same. 
+            Click each die to freeze it at its current value between rolls.</p>
+            <div className="dice-container">
+                {diceElements}
+            </div>
+            <button 
+                className="roll-dice" 
+                onClick={rollDice}
+            >
+                {tenzies ? "New Game" : "Roll"}
+            </button>
+            <p>Rolls: {rolls} | Best Score: {bestScore}</p>
+        </main>
+    )
 }
-
-export default App;
