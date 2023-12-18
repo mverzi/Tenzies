@@ -24,7 +24,7 @@ export default function App() {
             setTenzies(true)
             updateBestScore()
           }
-    }, [dice, bestScore])
+    }, [dice, rolls, bestScore])
 
     React.useEffect(() => {
         localStorage.setItem("rolls", JSON.stringify(bestScore))
